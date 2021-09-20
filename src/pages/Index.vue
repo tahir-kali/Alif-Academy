@@ -1,14 +1,27 @@
 <template>
   <q-page class="flex flex-center">
   <!-- Main Blog Part here -->
-  <div class="full-width q-pr-xl q-pl-xl q-pt-sm row">
-  <div class="collapse q-pa-sm q-mr-sm bg-black text-white text-h6" style="border-radius:5px">
-  Alif Blogging
-  </div>
-  <q-input dense outlined class="col-10 expand" style="float:right;vertical-align:bottom" v-model="search" @change="SearchBlog()">
-  <template v-slot:append>
+  <div class="full-width q-pr-xl q-pl-xl q-pt-sm">
+
+   <q-fab
+        style="vertical-align:middle"
+        dense
+        v-model="fab2"
+        vertical-actions-align="left"
+        label="Options"
+        padding="none md"
+        icon="keyboard_arrow_down"
+        class="text-black"
+        direction="down"
+      >
+        <q-fab-action padding="3px" external-label color="primary" @click="dpFilters=true" icon="filter_alt" label="Filters" />
+        <q-fab-action padding="3px" external-label color="secondary" @click="onClick" icon="account_circle" label="Profile" />
+        <q-fab-action padding="3px" external-label color="red" @click="dev" icon="code_off" label="Developer" />
+      </q-fab>
+  <q-input dense outlined style="float:right;vertical-align:bottom" v-model="search" @change="SearchBlog" label="Search blog title">
+  <template v-slot:after @click="SearchBlog">
     <div>
-      <q-icon name="search" />
+      <q-btn icon="search" round dense />
     </div>
   </template>
   </q-input>
@@ -17,18 +30,18 @@
   <h1>You have slow internet connection!</h1>
   </div>
   <div class="column full-width q-pl-xl q-pt-sm q-pr-xl" v-else>
-   <q-card class="q-pm-xl q-mr-xl q-mb-md full-width cursor-pointer" v-if="blogs.length" style="height:auto;max-width:1600px" @click="ShowBlog(blogs[current].id)">
+   <q-card class="q-pm-xl q-mr-xl q-mb-md full-width" v-if="blogs.length" style="height:auto;max-width:1600px">
 
-<q-parallax :src="photos[blogs[current].id]">
+<q-parallax :src="photos[Math.floor(Math.random() * 10)]">
  </q-parallax>
       <q-card-section>
         <div class="text-h6">{{ blogs[current].title }}</div>
         <div class="text-subtitle2">By {{ getUser(blogs[current].userId) }}</div>
       </q-card-section>
-      <q-card-actions align="right">
-        <q-btn flat round color="red" icon="favorite" />
-        <q-btn flat round color="teal" icon="bookmark" />
-        <q-btn flat round color="primary" icon="share" />
+      <q-card-actions align="center">
+        <q-btn flat round color="grey" icon="visibility"  @click="ShowBlog(blogs[current].id)"/>
+        <q-btn flat round color="grey" icon="comment" @click="FetchComments(blogs[current].id)" />
+        <q-btn flat round color="grey" icon="share" />
       </q-card-actions>
     </q-card>
     <q-pagination
@@ -37,6 +50,36 @@
       input
     />
   </div>
+
+<q-dialog v-model="dpComments">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">{{blog.title}}</div>
+        </q-card-section>
+
+        <q-separator />
+      <q-card-section v-if="comments.length" style="max-height:70vh;overflow-y:auto">
+      <div v-for="c in comments" :key="c.id" class="q-pa-md">
+      <q-item>
+         <q-item-section top avatar>
+          <q-avatar>
+            <img src="https://cdn.quasar.dev/img/boy-avatar.png">
+          </q-avatar>
+        </q-item-section>
+         <q-item-section>
+          <q-item-label>{{c.email}}</q-item-label>
+          <q-item-label caption lines="2">{{c.body}}</q-item-label>
+        </q-item-section>
+      </q-item>
+      </div>
+      </q-card-section>
+        <q-separator />
+
+        <q-card-actions align="right">
+          <q-btn flat label="Close" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
 <q-dialog v-model="dpBlog">
       <q-card>
@@ -47,7 +90,7 @@
         <q-separator />
 
         <q-card-section style="max-height: 80vh" class="scroll">
-        <q-img :src="photos[blogs[current].id]" style="border-radius:10px;max-height:300px" />
+        <q-img :src="photos[Math.floor(Math.random() * 10)]" style="border-radius:10px;max-height:300px" />
          {{blogs[current].body}}
         </q-card-section>
       <q-card-section>
@@ -60,7 +103,89 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+  <q-dialog v-model="dpFilters">
+      <q-card style=";min-width:400px">
+        <q-card-section>
+          <div class="text-h6">
+          <q-input label="Title of the post" outlined dense>
+          <template v-slot:after>
+            <div>
+              <q-btn color="primary" icon="search" no-caps />
+            </div>
+          </template>
+          </q-input>
+          </div>
+        </q-card-section>
 
+        <q-separator />
+
+        <q-card-section style="max-height: 80vh" class="scroll">
+        <q-select
+          outlined
+          use-input
+          map-options
+          emit-value
+          dense
+          v-model="category"
+          multiple
+          :options="categories"
+          use-chips
+          class="q-mb-sm"
+          stack-label
+          label="Categories">
+          <template v-slot:before>
+            <div>
+              <q-toggle v-model="ctg" />
+            </div>
+          </template>
+        </q-select>
+        <q-select
+          outlined
+          use-input
+          map-options
+          emit-value
+          dense
+          v-model="author"
+          multiple
+          :options="authors"
+          use-chips
+          class="q-mb-sm"
+          stack-label
+          label="Authors">
+          <template v-slot:before>
+            <div>
+              <q-toggle v-model="ctg" />
+            </div>
+          </template>
+        </q-select>
+        <q-select
+          outlined
+          use-input
+          map-options
+          emit-value
+          dense
+          v-model="tag"
+          multiple
+          :options="tags"
+          use-chips
+          class="q-mb-sm"
+          stack-label
+          label="Tags">
+          <template v-slot:before>
+            <div>
+              <q-toggle v-model="ctg" />
+            </div>
+          </template>
+        </q-select>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right">
+          <q-btn flat label="Close" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -71,12 +196,24 @@ export default defineComponent({
   name: 'PageIndex',
   setup () {
     return {
-      current: ref(0)
+      current: ref(0),
+      fab2: ref(false)
     }
   },
   data () {
     return {
+      ctg: true,
+      ath: true,
+      tg: false,
+      category: ref(null),
+      author: ref(null),
+      tag: ref(null),
+      categories: ['Politics', 'Law', 'Literature'],
+      authors: [],
+      tags: ['Politics', 'Law', 'Literature'],
+      dpFilters: false,
       search: '',
+      dpComments: false,
       dpBlog: false,
       blog: {
         title: '',
@@ -85,22 +222,32 @@ export default defineComponent({
       user: {},
       photo: '',
       blogs: [],
+      comments: [],
       users: [],
       photos: []
     }
   },
   async created () {
-    await this.ReadUsers()
-    await this.ReadBlogs()
-    await this.ReadPhotos()
+    await this.FetchUsers()
+    await this.FetchBlogs()
+    await this.FetchPhotos()
   },
   methods: {
-    ReadBlogs: function () {
+    FetchBlogs: function () {
       fetch('http://jsonplaceholder.typicode.com/posts').then(res => res.json()).then(data => {
         this.blogs = data
       })
     },
-    ReadPhotos: function () {
+    FetchComments: function (id) {
+      this.blog = this.blogs[id - 1]
+      fetch('http://jsonplaceholder.typicode.com/posts/' + id + '/comments').then(res => res.json()).then(data => {
+        data.forEach(d => {
+          this.comments.push(d)
+        })
+      })
+      this.dpComments = true
+    },
+    FetchPhotos: function () {
       fetch('https://api.unsplash.com/photos/?client_id=ObzfFTFxLcWCWxUv2zzDS57MaOlpS8HKb4Cwse_Pu8k').then(res => res.json()).then(data => {
         data.forEach(d => {
           if (d.urls) {
@@ -109,10 +256,11 @@ export default defineComponent({
         })
       })
     },
-    ReadUsers: function () {
+    FetchUsers: function () {
       fetch('https://jsonplaceholder.typicode.com/users').then(res => res.json()).then(data => {
         data.forEach(d => {
           this.users.push(d)
+          this.authors.push(d.name)
         })
       })
     },
@@ -122,8 +270,14 @@ export default defineComponent({
       this.dpBlog = true
     },
     SearchBlog: function () {
-      if (name.length > 6) {
-        this.current = this.blogs.find(x => x.name.includes(this.search)).id
+      if (this.search.length > 6) {
+        this.blogs.forEach(b => {
+          if (b.title.includes(this.search)) {
+            console.log(b.id)
+            this.current = b.id - 1
+            return 0
+          }
+        })
       }
     },
     getUser: function (id) {
@@ -135,6 +289,9 @@ export default defineComponent({
         condition = true
       }
       return condition
+    },
+    dev: function () {
+      window.location.assign('https://callme-rahimi.web.app/')
     }
   }
 })
