@@ -11,12 +11,14 @@
         label="Options"
         padding="none md"
         icon="keyboard_arrow_down"
-        class="text-black"
+        class="text-black q-mt-sm"
         direction="down"
       >
         <q-fab-action padding="3px" external-label color="primary" @click="dpFilters=true" icon="filter_alt" label="Filters" />
-        <q-fab-action padding="3px" external-label color="secondary" @click="onClick" icon="account_circle" label="Profile" />
-        <q-fab-action padding="3px" external-label color="red" @click="dev" icon="code_off" label="Developer" />
+        <q-fab-action padding="3px" external-label color="primary" @click="RouteTo('https://facebook.com/lifexrahimi')" icon="fab fa-facebook" label="Facebook" />
+         <q-fab-action padding="3px" external-label color="primary" @click="RouteTo('https://www.linkedin.com/in/mohammad-tahir-rahimi-6a14531a2/')" icon="fab fa-linkedin" label="LinkedIn" />
+        <q-fab-action padding="3px" external-label color="grey" @click="RouteTo('https://https://github.com/tahir-kali')" icon="fab fa-github" label="Github" />
+        <q-fab-action padding="3px" external-label color="red" @click="RouteTo('https://callme-rahimi.web.app/')" icon="code_off" label="Developer" />
       </q-fab>
   <q-input dense outlined style="float:right;vertical-align:bottom" v-model="search" @change="SearchBlog" label="Search blog title">
   <template v-slot:after @click="SearchBlog">
@@ -89,7 +91,7 @@
 
         <q-separator />
 
-        <q-card-section style="max-height: 80vh" class="scroll">
+        <q-card-section style="max-height: 600px;overflow-y:auto" class="scroll">
         <q-img :src="photos[Math.floor(Math.random() * 10)]" style="border-radius:10px;max-height:300px" />
          {{blogs[current].body}}
         </q-card-section>
@@ -104,7 +106,7 @@
       </q-card>
     </q-dialog>
   <q-dialog v-model="dpFilters">
-      <q-card style=";min-width:400px">
+      <q-card style="min-width:400px;max-width:400px">
         <q-card-section>
           <div class="text-h6">
           <q-input label="Title of the post" outlined dense>
@@ -119,7 +121,7 @@
 
         <q-separator />
 
-        <q-card-section style="max-height: 80vh" class="scroll">
+        <q-card-section style="max-height: 60vh;overflow-y:auto">
         <q-select
           outlined
           use-input
@@ -177,6 +179,7 @@
             </div>
           </template>
         </q-select>
+           <q-date v-model="range" range multiple style="float:right" />
         </q-card-section>
 
         <q-separator />
@@ -211,6 +214,7 @@ export default defineComponent({
       categories: ['Politics', 'Law', 'Literature'],
       authors: [],
       tags: ['Politics', 'Law', 'Literature'],
+      range: [{ from: '2020/07/01', to: '2020/07/10' }, { from: '2020/07/21', to: '2020/07/25' }],
       dpFilters: false,
       search: '',
       dpComments: false,
@@ -280,6 +284,9 @@ export default defineComponent({
         })
       }
     },
+    RouteTo: function (url) {
+      window.location.assign(url)
+    },
     getUser: function (id) {
       return this.users.find(x => x.id === id).name
     },
@@ -289,9 +296,6 @@ export default defineComponent({
         condition = true
       }
       return condition
-    },
-    dev: function () {
-      window.location.assign('https://callme-rahimi.web.app/')
     }
   }
 })
